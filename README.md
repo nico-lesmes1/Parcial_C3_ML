@@ -1,6 +1,6 @@
 # InmoSmart - Prototipo local
 
-InmoSmart integra los resultados de los tres talleres del proyecto:
+InmoSmart integra los resultados de los tres talleres:
 
 - Aprendizaje supervisado: estimación del valor justo.
 - Aprendizaje no supervisado: segmentación del mercado con K-Means.
@@ -9,22 +9,22 @@ InmoSmart integra los resultados de los tres talleres del proyecto:
 ## Requisitos
 
 - Python 3 instalado.
-- Navegador moderno.
-- Conexión a Internet solo para cargar Plus Jakarta Sans y Chart.js desde sus CDN.
+- Navegador.
+- Conexión a Internet.
 
 ## Ejecutar localmente
 
 Desde una terminal de Windows:
 
 ```powershell
-cd "C:\Users\josen\OneDrive\Desktop\ML P"
+cd "C:\Parcial_C3_ML-main"
 python -m http.server 8000
 ```
 
 Abrir en el navegador:
 
 ```text
-http://127.0.0.1:8000/Mockup/Mockup/pagina/index.html
+http://127.0.0.1:8000/Pagina/index.html
 ```
 
 No abrir `index.html` directamente con doble clic. El navegador necesita el servidor HTTP para cargar el dataset mediante `fetch`.
@@ -33,13 +33,11 @@ Para detener el servidor, presionar `Ctrl+C` en la terminal.
 
 ## Archivos principales
 
-- `Mockup/Mockup/pagina/index.html`: estructura, navegación y formulario.
-- `Mockup/Mockup/pagina/script.js`: carga de datos, modelos y gráficos.
-- `Mockup/Mockup/pagina/styles.css`: interfaz visual.
+- `Pagina/index.html`: estructura, navegación y formulario.
+- `Pagina/script.js`: carga de datos, modelos y gráficos.
+- `Pagina/styles.css`: interfaz visual.
 - `dataset_limpio.csv`: 8.372 registros utilizados por el prototipo.
-- `Taller_3_C3.ipynb`: notebook de aprendizaje no supervisado.
-- `Taller2_QLearning_Vivienda_ejecutado.ipynb`: notebook de Q-Learning.
-- `mdp_bienes_raices.ipynb`: definición del proceso de decisión de Markov.
+- 
 
 ## Aprendizaje supervisado
 
