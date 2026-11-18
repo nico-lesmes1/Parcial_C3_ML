@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InmoSmart | Valuación Inteligente</title>
+    <!-- Fuentes y Chart.js -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- NAVEGACIÓN (Fija en la parte superior) -->
+    <nav class="navbar glass">
+        <div class="logo">
+            <span class="logo-icon">🏠</span> Inmo<span class="text-gradient">Smart</span>
+        </div>
+        <div class="nav-links">
+            <button class="nav-btn active" onclick="showScreen('home')">Inicio</button>
+            <button class="nav-btn" onclick="showScreen('predict')">Predecir</button>
+            <button class="nav-btn" onclick="showScreen('dashboard')">Dashboard</button>
+        </div>
+    </nav>
+
+    <!-- PANTALLA 1: HOME (Landing) -->
+    <section id="home" class="screen active">
+        <div class="hero">
+            <div class="hero-content">
+                <h1>Descubre el <span class="text-gradient">valor real</span> de tu próxima propiedad.</h1>
+                <p>InmoSmart analiza miles de datos del mercado para decirte si una casa está sobrevalorada, a precio justo o si es una oportunidad única.</p>
+                <button class="btn-primary" onclick="showScreen('predict')">Iniciar Valuación →</button>
+            </div>
+            <div class="hero-visual">
+                <div class="glass-card mock-card">
+                    <div class="mock-header">
+                        <div class="mock-dots"><span></span><span></span><span></span></div>
+                    </div>
+                    <div class="mock-body">
+                        <div class="skeleton skeleton-title"></div>
+                        <div class="skeleton skeleton-price"></div>
+                        <div class="mock-tags">
+                            <span class="tag tag-green">Oportunidad</span>
+                            <span class="tag tag-blue">Cluster: Medio</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PANTALLA 2: PREDICT (Formulario) -->
+    <section id="predict" class="screen">
+        <div class="container">
+            <div class="section-header">
+                <h2>Simulador de Valuación</h2>
+                <p>Ingresa las características de la propiedad para calcular su valor estimado.</p>
+            </div>
+            
+            <div class="glass-card form-card">
+                <form id="predict-form" onsubmit="event.preventDefault(); calculatePrice();">
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label>Área Construida (m²)</label>
+                            <input type="number" id="area" min="30" max="500" value="90" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Habitaciones</label>
+                            <input type="number" id="habitaciones" min="1" max="10" value="3" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Baños</label>
+                            <input type="number" id="banos" min="1" max="8" value="2" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Estrato (1-6)</label>
+                            <select id="estrato">
+                                <option value="1">1 - Bajo-Bajo</option>
+                                <option value="2">2 - Bajo</option>
+                                <option value="3">3 - Medio-Bajo</option>
+                                <option value="4" selected>4 - Medio</option>
+                                <option value="5">5 - Medio-Alto</option>
+                                <option value="6">6 - Alto</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Parqueaderos</label>
+                            <input type="number" id="parqueaderos" min="0" max="5" value="1" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Administración ($)</label>
+                            <input type="number" id="admin" min="0" max="5000000" step="50000" value="300000" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Ubicación</label>
+                            <select id="ubicacion"><option value="">Cargar ubicaciones...</option></select>
+                        </div>
+                        <div class="input-group">
+                            <label>Precio publicado (COP, opcional)</label>
+                            <input type="number" id="precio-publicado" min="0" step="1000000" placeholder="Ej: 650000000">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary btn-full">Calcular con los modelos</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- PANTALLA 3: RESULTADO (Predicción) -->
+    <section id="result" class="screen">
+        <div class="container">
+            <div class="result-layout">
+                <div class="glass-card result-card">
+                    <span class="badge" id="result-badge">Simulación</span>
+                    <h2>Valor Estimado</h2>
+                    <h1 class="price-display" id="result-price">$0</h1>
+                    <p class="subtitle" id="result-subtitle">Basado en las características ingresadas</p>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric">
+                            <span>Perfil de Mercado</span>
+                            <strong id="result-cluster">-</strong>
+                        </div>
+                        <div class="metric">
+                            <span>Precio por m²</span>
+                            <strong id="result-m2">-</strong>
+                        </div>
+                    </div>
+                    <div class="agent-card">
+                        <span>Decisión del agente de refuerzo</span>
+                        <strong id="result-agent">-</strong>
+                        <p id="result-agent-detail">-</p>
+                    </div>
+                    <button class="btn-secondary" onclick="showScreen('predict')">← Volver a calcular</button>
+                </div>
+
+                <div class="glass-card chart-card">
+                    <h3>Comparación de Mercado</h3>
+                    <canvas id="priceChart"></canvas>
+                    <p class="chart-note">* Comparativa estimada frente al promedio de la ciudad.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PANTALLA 4: DASHBOARD (Análisis de Clusters) -->
+    <section id="dashboard" class="screen">
+        <div class="container">
+            <div class="section-header">
+                <h2>Inteligencia de Mercado</h2>
+                <p>Visualización de los 3 segmentos descubiertos por el algoritmo K-Means.</p>
+            </div>
+            
+            <div class="dashboard-grid">
+                <!-- Cluster 1 -->
+                <div class="glass-card cluster-card">
+                    <div class="cluster-header">
+                        <h3>Vivienda Económica</h3>
+                        <span class="tag tag-gray">Cluster 0</span>
+                    </div>
+                    <div class="cluster-stats">
+                        <div><span>Área Prom.</span><strong>96 m²</strong></div>
+                        <div><span>Precio Prom.</span><strong>$387M</strong></div>
+                        <div><span>Estrato Prom.</span><strong>3.4</strong></div>
+                    </div>
+                </div>
+                <!-- Cluster 2 -->
+                <div class="glass-card cluster-card highlight-border">
+                    <div class="cluster-header">
+                        <h3>Vivienda Media</h3>
+                        <span class="tag tag-blue">Cluster 2</span>
+                    </div>
+                    <div class="cluster-stats">
+                        <div><span>Área Prom.</span><strong>89 m²</strong></div>
+                        <div><span>Precio Prom.</span><strong>$529M</strong></div>
+                        <div><span>Estrato Prom.</span><strong>4.4</strong></div>
+                    </div>
+                </div>
+                <!-- Cluster 3 -->
+                <div class="glass-card cluster-card">
+                    <div class="cluster-header">
+                        <h3>Vivienda Premium</h3>
+                        <span class="tag tag-gold">Cluster 1</span>
+                    </div>
+                    <div class="cluster-stats">
+                        <div><span>Área Prom.</span><strong>267 m²</strong></div>
+                        <div><span>Precio Prom.</span><strong>$1,641M</strong></div>
+                        <div><span>Estrato Prom.</span><strong>5.3</strong></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-card chart-card mt-2">
+                <h3>Distribución de Clusters (PCA 2D)</h3>
+                <canvas id="clusterChart"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+</html>
