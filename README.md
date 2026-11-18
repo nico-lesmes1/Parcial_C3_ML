@@ -1,6 +1,6 @@
 # InmoSmart - Prototipo local
 
-InmoSmart integra los resultados de los tres talleres:
+InmoSmart integra los resultados de los tres talleres del proyecto:
 
 - Aprendizaje supervisado: estimación del valor justo.
 - Aprendizaje no supervisado: segmentación del mercado con K-Means.
@@ -9,35 +9,44 @@ InmoSmart integra los resultados de los tres talleres:
 ## Requisitos
 
 - Python 3 instalado.
-- Navegador.
-- Conexión a Internet.
+- Navegador moderno.
+- Conexión a Internet solo para cargar Plus Jakarta Sans y Chart.js desde sus CDN.
 
 ## Ejecutar localmente
 
 Desde una terminal de Windows:
 
 ```powershell
-cd "C:\Parcial_C3_ML-main"
-python -m http.server 8000
+cd "C:\Users\josen\OneDrive\Desktop\ML P"
+python -m pip install -r requirements.txt
+python -m modelos.entrenar_todos
+python app.py
 ```
 
 Abrir en el navegador:
 
 ```text
-http://127.0.0.1:8000/Pagina/index.html
+http://127.0.0.1:8000/
 ```
 
-No abrir `index.html` directamente con doble clic. El navegador necesita el servidor HTTP para cargar el dataset mediante `fetch`.
+No abrir `index.html` directamente con doble clic. El servidor Flask publica la página y las APIs.
 
 Para detener el servidor, presionar `Ctrl+C` en la terminal.
 
 ## Archivos principales
 
 - `Pagina/index.html`: estructura, navegación y formulario.
-- `Pagina/script.js`: carga de datos, modelos y gráficos.
+- `Pagina/script.js`: interfaz y consumo de las APIs.
 - `Pagina/styles.css`: interfaz visual.
+- `app.py`: servidor Flask y integración de los modelos.
+- `modelos/entrenar_supervisado.py`: LightGBM o Random Forest.
+- `modelos/entrenar_kmeans.py`: aprendizaje no supervisado.
+- `modelos/entrenar_refuerzo.py`: Q-Learning.
+- `modelos/entrenar_todos.py`: ejecuta todo el entrenamiento.
 - `dataset_limpio.csv`: 8.372 registros utilizados por el prototipo.
-- 
+- `Taller_3_C3.ipynb`: notebook de aprendizaje no supervisado.
+- `Taller2_QLearning_Vivienda_ejecutado.ipynb`: notebook de Q-Learning.
+- `mdp_bienes_raices.ipynb`: definición del proceso de decisión de Markov.
 
 ## Aprendizaje supervisado
 

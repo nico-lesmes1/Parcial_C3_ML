@@ -46,35 +46,31 @@ function median(values) {
 
 async function loadDataset() {
     try {
-        const response = await fetch('../dataset_limpio.csv');
-        if (!response.ok) throw new Error(`No se pudo cargar el dataset (${response.status})`);
-        dataset = parseCSV(await response.text());
-
-        const locations = [...new Set(dataset.map(row => row.ubicacion_norm).filter(Boolean))].sort();
+        const locationResponse = await fetch('/api/locations');
+        if (!locationResponse.ok) throw new Error(`No se pudo cargar las ubicaciones (${locationResponse.status})`);
+        const locationData = await locationResponse.json();
+        const locations = locationData.locations;
         const select = document.getElementById('ubicacion');
         select.innerHTML = locations.map(location =>
             `<option value="${location}">${location.replace(/\b\w/g, char => char.toUpperCase())}</option>`
         ).join('');
         select.value = locations.includes('cedritos') ? 'cedritos' : locations[0];
-
-        locationMedians = {};
-        locations.forEach(location => {
-            locationMedians[location] = median(dataset
-                .filter(row => row.ubicacion_norm === location)
-                .map(row => row.precio));
-        });
-
-        stratumMedians = {};
-        for (let estrato = 1; estrato <= 6; estrato++) {
-            stratumMedians[estrato] = median(dataset
-                .filter(row => row.estrato === estrato)
-                .map(row => row.precio));
-        }
-
         renderClusterChart();
+        loadDashboardProfiles();
     } catch (error) {
         console.error(error);
-        document.getElementById('ubicacion').innerHTML = '<option value="">Dataset no disponible</option>';
+        document.getElementById('ubicacion').innerHTML = '<option value="">Ejecuta primero el entrenamiento</option>';
+    }
+}
+
+async function loadDashboardProfiles() {
+    try {
+        const response = await fetch('/api/dashboard');
+        if (!response.ok) return;
+        const data = await response.json();
+        window.inmoSmartProfiles = data.profiles;
+    } catch (error) {
+        console.error(error);
     }
 }
 
@@ -214,7 +210,7 @@ function setBadge(type, text) {
     badge.style.borderColor = border;
 }
 
-function calculatePrice() {
+async function calculatePrice() {
     const property = {
         area: Number(document.getElementById('area').value),
         habitaciones: Number(document.getElementById('habitaciones').value),
@@ -226,20 +222,53 @@ function calculatePrice() {
         publishedPrice: Number(document.getElementById('precio-publicado').value) || null
     };
 
-    const predicted = predictSupervised(property);
-    const cluster = assignCluster(property);
     const realPrice = property.publishedPrice;
-    const gap = realPrice ? (realPrice - predicted) / predicted : null;
+    const submitButton = document.querySelector('#predict-form button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.textContent = 'Calculando...';
 
-    let position = 'Justo';
-    if (gap !== null) {
-        if (gap < -0.15) position = 'Oportunidad';
-        else if (gap > 0.15) position = 'Sobrevalorado';
+    let result;
+    try {
+        const response = await fetch('/api/predict', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                habitaciones: property.habitaciones,
+                baños: property.banos,
+                parqueaderos: property.parqueaderos,
+                area_construida: property.area,
+                area_privada: property.area,
+                estrato: property.estrato,
+                estado: 4,
+                antiguedad: 3,
+                administracion: property.admin,
+                area_total: property.area,
+                tiene_administracion: property.admin > 0 ? 1 : 0,
+                ubicacion_norm: property.location,
+                publishedPrice: realPrice
+            })
+        });
+        if (!response.ok) throw new Error(await response.text());
+        result = await response.json();
+    } catch (error) {
+        alert('No fue posible calcular. Ejecuta el entrenamiento y usa python app.py.');
+        console.error(error);
+        submitButton.disabled = false;
+        submitButton.textContent = 'Calcular con los modelos';
+        return;
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Calcular con los modelos';
     }
 
+    const predicted = result.predicted;
+    const cluster = result.cluster;
+    const position = result.position;
+    const gap = result.gap;
+
     document.getElementById('result-price').textContent = currency.format(predicted);
-    document.getElementById('result-cluster').textContent = `${cluster.name} (${cluster.code})`;
-    document.getElementById('result-m2').textContent = currency.format(predicted / property.area);
+    document.getElementById('result-cluster').textContent = `${cluster.name} (Cluster ${cluster.cluster})`;
+    document.getElementById('result-m2').textContent = currency.format(result.price_m2);
     document.getElementById('result-subtitle').textContent =
         realPrice ? `Precio publicado: ${currency.format(realPrice)} · Brecha: ${(gap * 100).toFixed(1)}%` :
         'Estimación supervisada con comparables reales del dataset';
@@ -248,10 +277,9 @@ function calculatePrice() {
     else if (position === 'Sobrevalorado') setBadge('red', '🔴 Sobrevalorada');
     else setBadge('gold', '🟡 Precio justo / por negociar');
 
-    const policy = getRLPolicy(cluster.index, position);
-    document.getElementById('result-agent').textContent = policy.action;
+    document.getElementById('result-agent').textContent = result.action;
     document.getElementById('result-agent-detail').textContent =
-        `${policy.reason} Estado MDP: ${['Económico', 'Medio', 'Premium'][cluster.index]} × ${position}.`;
+        `Decisión obtenida por el agente Q-Learning entrenado. Estado MDP: ${result.state}.`;
 
     showScreen('result');
     renderPriceChart(predicted, realPrice, cluster);
@@ -325,14 +353,27 @@ function renderPriceChart(predicted, realPrice, cluster) {
     });
 }
 
-function renderClusterChart() {
+async function renderClusterChart() {
     const ctx = document.getElementById('clusterChart');
     if (!ctx) return;
-    const clusters = kmeansProperties();
-    const fallback = [
-        { area: 96, estrato: 3.4, price: 387000000, count: 2800 },
-        { area: 89, estrato: 4.4, price: 529000000, count: 3000 },
-        { area: 267, estrato: 5.3, price: 1641000000, count: 2572 }
+    let clusters = null;
+    try {
+        const response = await fetch('/api/dashboard');
+        if (response.ok) {
+            clusters = (await response.json()).profiles.map(profile => ({
+                area: profile.area_promedio,
+                estrato: profile.estrato_promedio,
+                price: profile.precio_promedio,
+                count: profile.cantidad
+            }));
+        }
+    } catch (error) {
+        console.error(error);
+    }
+    clusters = clusters || [
+        {area: 96, estrato: 3.4, price: 387000000, count: 2800},
+        {area: 89, estrato: 4.4, price: 529000000, count: 3000},
+        {area: 267, estrato: 5.3, price: 1641000000, count: 2572}
     ];
     const data = (clusters || fallback).map((cluster, index) => ({
         label: ['Económico', 'Medio', 'Premium'][index],

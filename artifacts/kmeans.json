@@ -1,0 +1,34 @@
+{
+  "profiles": [
+    {
+      "cluster": 0,
+      "area_promedio": 83.15760713258557,
+      "estrato_promedio": 3.728501581823411,
+      "precio_promedio": 395654349.69686514,
+      "banos_promedio": 2.073339085418464,
+      "cantidad": 3477,
+      "nombre": "Economico",
+      "cluster_label": 0
+    },
+    {
+      "cluster": 2,
+      "area_promedio": 98.275181040158,
+      "estrato_promedio": 4.328834759710336,
+      "precio_promedio": 514567624.44009215,
+      "banos_promedio": 2.335747202106649,
+      "cantidad": 3038,
+      "nombre": "Medio",
+      "cluster_label": 1
+    },
+    {
+      "cluster": 1,
+      "area_promedio": 268.1136241249327,
+      "estrato_promedio": 5.311793214862682,
+      "precio_promedio": 1661418227.3101778,
+      "banos_promedio": 4.302638664512655,
+      "cantidad": 1857,
+      "nombre": "Premium",
+      "cluster_label": 2
+    }
+  ]
+}
