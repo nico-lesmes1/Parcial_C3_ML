@@ -10,14 +10,13 @@ InmoSmart integra los resultados de los tres talleres del proyecto:
 
 - Python 3 instalado.
 - Navegador moderno.
-- Conexión a Internet solo para cargar Plus Jakarta Sans y Chart.js desde sus CDN.
+- Conexión a Internet.
 
 ## Ejecutar localmente
 
 Desde una terminal de Windows:
 
 ```powershell
-cd "C:\Users\josen\OneDrive\Desktop\ML P"
 python -m pip install -r requirements.txt
 python -m modelos.entrenar_todos
 python app.py
@@ -44,9 +43,6 @@ Para detener el servidor, presionar `Ctrl+C` en la terminal.
 - `modelos/entrenar_refuerzo.py`: Q-Learning.
 - `modelos/entrenar_todos.py`: ejecuta todo el entrenamiento.
 - `dataset_limpio.csv`: 8.372 registros utilizados por el prototipo.
-- `Taller_3_C3.ipynb`: notebook de aprendizaje no supervisado.
-- `Taller2_QLearning_Vivienda_ejecutado.ipynb`: notebook de Q-Learning.
-- `mdp_bienes_raices.ipynb`: definición del proceso de decisión de Markov.
 
 ## Aprendizaje supervisado
 
